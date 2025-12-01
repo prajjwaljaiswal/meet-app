@@ -35,7 +35,7 @@ export class ChatManager extends AGEventEmitter<ChatEvents> {
     this.userName = userName
 
     // Default to current origin if serverUrl not provided
-    const url = "http://192.168.8.144:5000"
+    const url = "https://videocallbackend.24livehost.com"
 
     console.log("[ChatManager] Connecting to Socket.IO server:", url)
 
@@ -104,9 +104,11 @@ export class ChatManager extends AGEventEmitter<ChatEvents> {
         // Compare as strings to handle number/string type differences
         const receivedUserId = String(data.userId || "")
         const currentUserId = String(this.userId || "")
-        
+
         if (data.userId && receivedUserId !== currentUserId && data.textstream) {
-          console.log(`[ChatManager] Processing remote transcription from ${data.userName} (${data.userId})`)
+          console.log(
+            `[ChatManager] Processing remote transcription from ${data.userName} (${data.userId})`,
+          )
           this.emit("transcriptionReceived", {
             userId: data.userId,
             userName: data.userName || "",

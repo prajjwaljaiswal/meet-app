@@ -29,7 +29,7 @@ module.exports = {
       env: {
         NODE_ENV: "development",
         PORT: 5200,
-        CORS_ORIGIN: "http://localhost:5100",
+        CORS_ORIGIN: "https://videocallfrontend.24livehost.com",
       },
       error_file: "../logs/backend-error.log",
       out_file: "../logs/backend-out.log",
@@ -38,4 +38,3 @@ module.exports = {
     },
   ],
 }
-
