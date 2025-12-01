@@ -35,7 +35,7 @@ export class ChatManager extends AGEventEmitter<ChatEvents> {
     this.userName = userName
 
     // Default to current origin if serverUrl not provided
-    const url = "https://videocallbackend.24livehost.com"
+    const url = "https://videocallbackend.24livehost.com:5200"
 
     console.log("[ChatManager] Connecting to Socket.IO server:", url)
 
