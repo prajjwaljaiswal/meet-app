@@ -8,8 +8,8 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "*"
 
 // Create HTTPS server
 const httpsServer = createServer({
-  key: fs.readFileSync(path.join(__dirname, "key.pem")),
-  cert: fs.readFileSync(path.join(__dirname, "cert.pem")),
+  key: fs.readFileSync(path.join(__dirname, "cert.key")),
+  cert: fs.readFileSync(path.join(__dirname, "STAR.24livehost.com 1.crt")),
 })
 
 // Initialize Socket.IO server with CORS configuration
