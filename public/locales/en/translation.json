@@ -1,0 +1,81 @@
+{
+  "confirm": "Confirm",
+  "liveLanguage": "Live Language",
+  "translationLanguage": "Translation Language",
+  "clearAll": "Clear All",
+  "analyze": "Analyze",
+  "denoise": "Denoise",
+  "analysisResult": "Analysis Result",
+  "prompt": "Prompt",
+  "conversationText": "Conversation Text",
+  "loadText": "Load Text",
+  "transcribing": "Transcribing",
+  "closeConversation": "Close Conversation",
+  "storage": {
+    "text": "Storage",
+    "success": "Storage success"
+  },
+  "export": {
+    "text": "Export",
+    "success": "Export success"
+  },
+  "dialog": {
+    "languageCaption": "Language Caption",
+    "languageShow": "Language Display",
+    "languageExport": "Language Export",
+    "languageExportTip": "Please select the language to export"
+  },
+  "login": {
+    "github": "Visit GitHub",
+    "join": "join channel",
+    "title": "Real-Time Transcription"
+  },
+  "footer": {
+    "aIAssistant": "AI Assistant",
+    "langaugesSetting": "Set & Start",
+    "conversationHistory": "Conversation History",
+    "participantsList": "Participants List",
+    "muteAudio": "Mute Audio",
+    "unMuteAudio": "UnMute Audio",
+    "muteVideo": "Mute Video",
+    "unMuteVideo": "UnMute Video",
+    "startCC": "Start CC",
+    "stopCC": "Stop CC",
+    "startScreenShare": "Share Screen",
+    "stopScreenShare": "Stop Sharing",
+    "screenShareStarted": "Screen sharing started",
+    "screenShareStopped": "Screen sharing stopped",
+    "screenShareError": "Failed to start screen sharing",
+    "tipEnableSTTFirst": "Please set language and start STT or Translation service",
+    "tipHostEnableCC": "Only the host can operate"
+  },
+  "setting": {
+    "sttStarted": "Speech to text has started",
+    "sttStopped": "Speech to text has stopped",
+    "sttStart": "Start speech-to-text",
+    "sttStop": "Stop speech-to-text",
+    "limitDuration": "The default speech-to-text time limit is 10 minutes",
+    "languagesSelect": "Please select on-site language and translation language",
+    "tip": "You can select up to two languages, and each live language can correspond to up to five translation languages",
+    "liveLanguage": "Live language",
+    "translationLanguageMax": "Translation language should less than or equal to 5",
+    "saveSuccess": "Setup success",
+    "sameLanguage": "The live language cannot be the same"
+  },
+  "conversation": {
+    "sttStarted": "The host has turned on real-time transcription",
+    "sttStopped": "Language to text service is not enabled",
+    "onTrial": "On trial",
+    "extendExperience": "Extend",
+    "setLanguage": "Render Langauges selection",
+    "extendExperienceText": "Extended experience can be extended by 10 minutes",
+    "extendExperienceFreeText": "The free version of the language to text service trial lasts for 10 minutes and has been used up."
+  },
+  "ai": {
+    "selectPromptSample": "Select Prompt Sample",
+    "selectConversation": "Select Conversation Text"
+  },
+  "message": {
+    "extendExperience": "Extended experience time success"
+  }
+}

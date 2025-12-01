@@ -1,0 +1,81 @@
+{
+  "confirm": "确认",
+  "liveLanguage": "现场语言",
+  "translationLanguage": "翻译语言",
+  "clearAll": "清除全部内容",
+  "analyze": "分析",
+  "denoise": "降噪",
+  "analysisResult": "分析结果",
+  "prompt": "提示",
+  "conversationText": "对话文本",
+  "transcribing": "转写中",
+  "loadText": "加载文本",
+  "closeConversation": "结束对话",
+  "storage": {
+    "text": "存储",
+    "success": "存储成功"
+  },
+  "export": {
+    "text": "导出",
+    "success": "导出成功"
+  },
+  "dialog": {
+    "languageCaption": "字幕语言",
+    "languageShow": "语言展示",
+    "languageExport": "语言导出",
+    "languageExportTip": "请选择一种语言导出"
+  },
+  "login": {
+    "github": "访问 GitHub",
+    "join": "加入频道",
+    "title": "实时语音转文字"
+  },
+  "footer": {
+    "aIAssistant": "AI助手",
+    "langaugesSetting": "配置与启动",
+    "conversationHistory": "对话记录",
+    "participantsList": "成员列表",
+    "muteAudio": "开启静音",
+    "unMuteAudio": "解除静音",
+    "muteVideo": "关闭视频",
+    "unMuteVideo": "开启视频",
+    "startCC": "开启字幕",
+    "stopCC": "关闭字幕",
+    "startScreenShare": "共享屏幕",
+    "stopScreenShare": "停止共享",
+    "screenShareStarted": "屏幕共享已开始",
+    "screenShareStopped": "屏幕共享已停止",
+    "screenShareError": "启动屏幕共享失败",
+    "tipEnableSTTFirst": "请设置语言并启动转录或翻译服务",
+    "tipHostEnableCC": "只有主持人才能操作"
+  },
+  "setting": {
+    "sttStarted": "语音转文字已开始",
+    "sttStopped": "语音转文字已停止",
+    "sttStart": "开始语音转文字",
+    "sttStop": "停止语音转文字",
+    "limitDuration": "语音转文字默认限制时长10分钟",
+    "languagesSelect": "请选择现场语言和翻译语言",
+    "tip": "您最多可以选择两种语言，每个现场语言可最多对应五种翻译语言",
+    "liveLanguage": "现场语言",
+    "translationLanguageMax": "翻译语言最多可以选择5种",
+    "saveSuccess": "设置成功",
+    "sameLanguage": "现场语言不能相同"
+  },
+  "conversation": {
+    "sttStarted": "主持人已开启实时转写",
+    "sttStopped": "语言转文字服务未开启",
+    "onTrial": "试用中",
+    "extendExperience": "延长体验",
+    "extendExperienceText": "延长体验可延长使用10分钟",
+    "setLanguage": "展示语言选择",
+    "extendExperienceFreeText": "免费版语音转文字体验时长 10 分钟，当前已用完"
+  },
+  "ai": {
+    "selectPromptSample": "选择提示模板",
+    "selectConversation": "选择对话范例"
+  },
+  "message": {
+    "extendExperience": "延长体验时间成功"
+  }
+}
