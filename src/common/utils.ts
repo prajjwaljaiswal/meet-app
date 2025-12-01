@@ -145,3 +145,20 @@ export const parseQuery = (url: string) => {
 
   return result
 }
+
+/**
+ * Build an invitation URL that opens the login page with the given channel (and optional userName).
+ * This works correctly with hash router (#/).
+ */
+export const buildInviteUrl = (channel: string, userName?: string) => {
+  const { origin, pathname, search } = window.location
+  const baseUrl = `${origin}${pathname}${search}`.split("#")[0]
+
+  const params = new URLSearchParams()
+  params.set("channel", channel)
+  if (userName) {
+    params.set("userName", encodeURIComponent(userName))
+  }
+
+  return `${baseUrl}#/login?${params.toString()}`
+}

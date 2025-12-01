@@ -49,8 +49,32 @@ export const RemoteStreamPlayer = forwardRef((props: StreamPlayerProps, ref) => 
   }, [activeTrack, screenTrack, videoTrack, fit])
 
   useLayoutEffect(() => {
-    if (!audioTrack?.isPlaying) {
-      audioTrack?.play()
+    if (audioTrack) {
+      try {
+        if (!audioTrack.isPlaying) {
+          console.log("[RemoteStreamPlayer] Starting remote audio playback")
+          audioTrack.play().catch((error) => {
+            console.error("[RemoteStreamPlayer] Error playing audio:", error)
+          })
+        } else {
+          console.log("[RemoteStreamPlayer] Audio track is already playing")
+        }
+      } catch (error) {
+        console.error("[RemoteStreamPlayer] Error in audio playback:", error)
+      }
+    } else {
+      console.log("[RemoteStreamPlayer] No audio track available")
+    }
+
+    return () => {
+      // Cleanup: stop audio when component unmounts or audioTrack changes
+      if (audioTrack?.isPlaying) {
+        try {
+          audioTrack.stop()
+        } catch (error) {
+          console.error("[RemoteStreamPlayer] Error stopping audio:", error)
+        }
+      }
     }
   }, [audioTrack])
 

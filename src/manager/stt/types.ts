@@ -1,4 +1,5 @@
 import { RtmManager } from "../rtm"
+import { ChatManager } from "../chat"
 import { IRequestLanguages } from "@/types"
 
 export interface STTEvents {}
@@ -14,4 +15,5 @@ export interface STTManagerOptions {
 
 export interface STTManagerInitData {
   rtmManager: RtmManager
+  chatManager?: ChatManager
 }

@@ -44,6 +44,7 @@ const rtmManager = new RtmManager()
 const chatManager = new ChatManager()
 const sttManager = new SttManager({
   rtmManager,
+  chatManager,
 })
 
 window.rtcManager = rtcManager
@@ -121,10 +122,13 @@ const HomePage = () => {
           token: sttData.token ?? "",
         })
         dispatch(setSubtitles([]))
+        // Enable captions automatically when STT starts
+        dispatch(setCaptionShow(true))
         dispatch(addMessage({ content: t("setting.sttStart"), type: "success" }))
       } else if (sttData.status == "end") {
         sttManager.removeOption()
-        dispatch(setCaptionShow(false))
+        // Keep captions visible even if STT stops (to show existing transcriptions)
+        // dispatch(setCaptionShow(false))
         dispatch(addMessage({ content: t("setting.sttStop"), type: "success" }))
       }
     }
@@ -155,6 +159,7 @@ const HomePage = () => {
     window.rtmManager.on("languagesChanged", onLanguagesChanged)
     window.rtmManager.on("sttDataChanged", onSttDataChanged)
     window.chatManager.on("chatMessageReceived", onChatMessageReceived)
+    window.chatManager.on("transcriptionReceived", onTranscriptionReceived)
     window.rtcManager.on("localUserChanged", onLocalUserChanged)
     window.rtcManager.on("remoteUserChanged", onRemoteUserChanged)
     window.rtcManager.on("textstreamReceived", onTextStreamReceived)
@@ -164,6 +169,7 @@ const HomePage = () => {
       window.rtmManager.off("languagesChanged", onLanguagesChanged)
       window.rtmManager.off("sttDataChanged", onSttDataChanged)
       window.chatManager.off("chatMessageReceived", onChatMessageReceived)
+      window.chatManager.off("transcriptionReceived", onTranscriptionReceived)
       window.rtcManager.off("localUserChanged", onLocalUserChanged)
       window.rtcManager.off("remoteUserChanged", onRemoteUserChanged)
       window.rtcManager.off("textstreamReceived", onTextStreamReceived)
@@ -240,6 +246,24 @@ const HomePage = () => {
             }),
           )
         })
+
+      // Auto-start transcription for all users with default language (English)
+      try {
+        await window.sttManager.startTranscription({
+          languages: [
+            {
+              source: "en-US",
+              target: [],
+            },
+          ],
+        })
+        // Enable captions automatically when transcription starts
+        dispatch(setCaptionShow(true))
+      } catch (sttError: any) {
+        console.error("[HomePage] Failed to auto-start transcription:", sttError)
+        // Don't show error to user - transcription might fail due to permissions
+        // User can still manually start it if needed
+      }
     } catch (error) {
       console.error("[HomePage] Initialization error:", error)
       dispatch(addMessage({ content: "Initialization failed", type: "error" }))
@@ -280,13 +304,27 @@ const HomePage = () => {
       const mergedUser = existingUser
         ? {
             userId: user.userId,
-            videoTrack: user.videoTrack ?? existingUser.videoTrack,
-            audioTrack: user.audioTrack ?? existingUser.audioTrack,
+            // Always use the latest track if provided, otherwise keep existing
+            videoTrack: user.videoTrack !== undefined ? user.videoTrack : existingUser.videoTrack,
+            audioTrack: user.audioTrack !== undefined ? user.audioTrack : existingUser.audioTrack,
             screenTrack:
               user.screenTrack !== undefined ? user.screenTrack : existingUser.screenTrack,
           }
         : user
       newMap.set(Number(user.userId), mergedUser)
+      
+      // Ensure audio track is played if it exists and is not already playing
+      if (mergedUser.audioTrack && !mergedUser.audioTrack.isPlaying) {
+        console.log(`[HomePage] Ensuring audio playback for user ${mergedUser.userId}`)
+        try {
+          mergedUser.audioTrack.play().catch((error) => {
+            console.error(`[HomePage] Error playing audio for user ${mergedUser.userId}:`, error)
+          })
+        } catch (error) {
+          console.error(`[HomePage] Error in audio playback for user ${mergedUser.userId}:`, error)
+        }
+      }
+      
       return newMap
     })
   }
@@ -300,6 +338,19 @@ const HomePage = () => {
     // modify subtitle list
     const targetUser = simpleUserMap.get(Number(textstream.uid))
     dispatch(updateSubtitles({ textstream, username: targetUser?.userName || "" }))
+  }
+
+  const onTranscriptionReceived = (data: { userId: string; userName: string; textstream: ITextstream }) => {
+    // Handle remote user transcription
+    console.log("[HomePage] onTranscriptionReceived from remote user:", data)
+    
+    // Ensure the textstream has the correct uid from the remote user
+    const textstreamWithUid = {
+      ...data.textstream,
+      uid: data.userId, // Use the userId from the message, not the local one
+    }
+    
+    dispatch(updateSubtitles({ textstream: textstreamWithUid, username: data.userName }))
   }
 
   const onLanguagesChanged = (languages: ILanguageSelect) => {

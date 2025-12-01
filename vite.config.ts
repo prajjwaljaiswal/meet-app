@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: true, // Allow access from network (IP address)
+      port: 5100, // Frontend dev server port
       watch: {
         // usePolling: true
       },

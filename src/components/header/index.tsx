@@ -4,6 +4,7 @@ import Time from "./time"
 import NetWork from "./network"
 import { useSelector } from "react-redux"
 import { useTranslation } from "react-i18next"
+import { buildInviteUrl } from "@/common"
 
 import styles from "./index.module.scss"
 
@@ -15,36 +16,43 @@ const Header = (props: IHeaderProps) => {
   const { style } = props
   const sttData = useSelector((state: RootState) => state.global.sttData)
   const options = useSelector((state: RootState) => state.global.options)
+  const userInfo = useSelector((state: RootState) => state.global.userInfo)
   const { channel } = options
+  const { userName } = userInfo
   const { t } = useTranslation()
 
-  const onClickChannel = async () => {
-    // test stt query api
-    // const res = await window.sttManager.queryTranscription()
-    // console.log("[test]", res)
-    // ...
-    // test stt update api
-    // const res = await window.sttManager.updateTranscription({
-    //   data: {
-    //     languages: ["zh-CN"],
-    //     rtcConfig: {
-    //       subscribeAudioUids: ["111"],
-    //     },
-    //     translateConfig: {
-    //       enable: false,
-    //     },
-    //   },
-    //   updateMaskList: ["languages", "rtcConfig.subscribeAudioUids", "translateConfig.enable"],
-    // })
-    // console.log("[test]", res)
+  const inviteUrl = channel ? buildInviteUrl(channel, userName) : ""
+
+  const copyInvite = () => {
+    if (!inviteUrl) return
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inviteUrl).catch(() => {
+        window.prompt("Copy this invitation link and send it to others:", inviteUrl)
+      })
+    } else {
+      window.prompt("Copy this invitation link and send it to others:", inviteUrl)
+    }
   }
 
   return (
     <header className={styles.header} style={style}>
       <NetWork></NetWork>
-      <span className={styles.channelName} onClick={onClickChannel}>
-        {channel}
-      </span>
+      <div className={styles.meetingInfo}>
+        <span className={styles.channelName}>{channel}</span>
+        {inviteUrl ? (
+          <div className={styles.inviteCard}>
+            <div className={styles.inviteLabel}>{t("meetingLink") || "Meeting link"}</div>
+            <div className={styles.inviteContent}>
+              <span className={styles.inviteUrl} title={inviteUrl}>
+                {inviteUrl}
+              </span>
+              <button className={styles.inviteButton} type="button" onClick={copyInvite}>
+                {t("invite") || "Copy link"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
       <span className={styles.transcription}>
         {sttData.status == "start" ? (
           <>

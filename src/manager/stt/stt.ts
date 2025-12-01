@@ -2,6 +2,7 @@ import { EXPERIENCE_DURATION } from "@/common"
 import { AGEventEmitter } from "../events"
 import { STTEvents, STTManagerStartOptions, STTManagerOptions, STTManagerInitData } from "./types"
 import { RtmManager } from "../rtm"
+import { ChatManager } from "../chat"
 import { IRequestLanguages } from "@/types"
 import { parser } from "../parser"
 
@@ -56,11 +57,13 @@ export class SttManager extends AGEventEmitter<STTEvents> {
   userId: string | number = ""
   channel: string = ""
   rtmManager: RtmManager
+  chatManager?: ChatManager
   private _init: boolean = false
   private recognition: SpeechRecognition | null = null
   private isTranscribing: boolean = false
   private currentStartTime: number = 0
   private lastEmittedTranscript: string = ""
+  private lastFinalTranscript: string = "" // Track the last final transcript we sent
 
   get hasInit() {
     return this._init
@@ -68,8 +71,9 @@ export class SttManager extends AGEventEmitter<STTEvents> {
 
   constructor(data: STTManagerInitData) {
     super()
-    const { rtmManager } = data
+    const { rtmManager, chatManager } = data
     this.rtmManager = rtmManager
+    this.chatManager = chatManager
   }
 
   setOption(option: STTManagerOptions) {
@@ -191,58 +195,107 @@ export class SttManager extends AGEventEmitter<STTEvents> {
 
       // Reset tracking variables
       this.lastEmittedTranscript = ""
+      this.lastFinalTranscript = ""
 
       // Set up event handlers
       this.recognition.onresult = (event: SpeechRecognitionEvent) => {
         const results = event.results
         const resultIndex = event.resultIndex
 
-        // Build complete transcript from all results up to the current index
-        let completeTranscript = ""
-        let latestIsFinal = false
+        // Get the current result
+        const currentResult = results[resultIndex]
+        if (!currentResult) return
 
-        for (let i = 0; i <= resultIndex; i++) {
-          const result = results[i]
-          if (!result) continue
+        const transcript = currentResult[0]?.transcript || ""
+        const isFinal = currentResult.isFinal
 
-          const transcript = result[0]?.transcript || ""
-          if (transcript.trim()) {
-            completeTranscript += transcript + " "
-          }
-          // Track if the latest result is final
-          if (i === resultIndex) {
-            latestIsFinal = result.isFinal
-          }
-        }
+        // Only process if there's actual transcript text
+        if (!transcript.trim()) return
 
-        completeTranscript = completeTranscript.trim()
+        // For final results, extract only the NEW segment that just became final
+        // Web Speech API accumulates results, so we need to get only what's new
+        if (isFinal) {
+          // Extract only the new text that just became final
+          // Web Speech API gives cumulative results, so subtract what we already sent
+          const fullTranscript = transcript.trim()
+          let newFinalText = fullTranscript
 
-        // Only emit if the transcript has actually changed
-        if (completeTranscript && completeTranscript !== this.lastEmittedTranscript) {
-          this.lastEmittedTranscript = completeTranscript
-
-          const textstream = {
-            dataType: "transcribe" as const,
-            culture: langCode,
-            uid: this.userId,
-            startTextTs: this.currentStartTime,
-            textTs: Date.now(),
-            time: Date.now(),
-            durationMs: Date.now() - this.currentStartTime,
-            words: [
-              {
-                text: completeTranscript,
-                start_ms: 0,
-                duration_ms: Date.now() - this.currentStartTime,
-                isFinal: latestIsFinal,
-                confidence: latestIsFinal ? 0.9 : 0.8,
-              },
-            ],
-            trans: [],
+          // If we have a previous final transcript, extract only the new part
+          if (this.lastFinalTranscript && fullTranscript.startsWith(this.lastFinalTranscript)) {
+            newFinalText = fullTranscript.substring(this.lastFinalTranscript.length).trim()
           }
 
-          // Emit through parser to maintain compatibility
-          parser.praseData(textstream)
+          // Only emit if there's new text
+          if (newFinalText) {
+            const textstream = {
+              dataType: "transcribe" as const,
+              culture: langCode,
+              uid: String(this.userId),
+              startTextTs: this.currentStartTime,
+              textTs: Date.now(),
+              time: Date.now(),
+              durationMs: Date.now() - this.currentStartTime,
+              words: [
+                {
+                  text: newFinalText,
+                  start_ms: 0,
+                  duration_ms: Date.now() - this.currentStartTime,
+                  isFinal: true,
+                  confidence: 0.9,
+                },
+              ],
+              trans: [],
+            }
+
+            // Emit through parser
+            parser.praseData(textstream)
+
+            // Send transcription to other users via Socket.IO
+            if (this.chatManager && this.hasInit) {
+              this.chatManager.sendTranscription(textstream).catch((error) => {
+                console.error("[STT] Failed to send transcription via Socket.IO:", error)
+              })
+            }
+
+            // Update last final transcript
+            this.lastFinalTranscript = fullTranscript
+          }
+
+          // Reset for next speech segment
+          this.lastEmittedTranscript = ""
+          this.currentStartTime = Date.now()
+        } else {
+          // For interim results, emit updates for real-time display
+          // But only send if it's different from last emitted
+          if (transcript.trim() && transcript.trim() !== this.lastEmittedTranscript) {
+            this.lastEmittedTranscript = transcript.trim()
+
+            const textstream = {
+              dataType: "transcribe" as const,
+              culture: langCode,
+              uid: String(this.userId),
+              startTextTs: this.currentStartTime,
+              textTs: Date.now(),
+              time: Date.now(),
+              durationMs: Date.now() - this.currentStartTime,
+              words: [
+                {
+                  text: transcript.trim(),
+                  start_ms: 0,
+                  duration_ms: Date.now() - this.currentStartTime,
+                  isFinal: false,
+                  confidence: 0.8,
+                },
+              ],
+              trans: [],
+            }
+
+            // Emit through parser for real-time updates (local only)
+            parser.praseData(textstream)
+
+            // Don't send interim results to remote users (only final)
+            // This reduces network traffic and prevents incomplete messages
+          }
         }
       }
 
@@ -378,6 +431,7 @@ export class SttManager extends AGEventEmitter<STTEvents> {
 
     // Reset tracking variables
     this.lastEmittedTranscript = ""
+    this.lastFinalTranscript = ""
 
     await this.rtmManager.destroy()
     this.option = undefined

@@ -4,7 +4,6 @@ import {
   MemberIcon,
   CaptionIcon,
   TranscriptionIcon,
-  SettingIcon,
   AiIcon,
   ArrowUpIcon,
   ScreenShareIcon,
@@ -25,11 +24,9 @@ import {
   setLocalVideoMute,
   setIsScreenSharing,
   addMessage,
-  setTipSTTEnable,
 } from "@/store/reducers/global"
-// LanguageSettingDialog removed - using English as default
+// LanguageSettingDialog removed - transcription now auto-starts
 import CaptionPopover from "./caption-popover"
-import { Popover } from "antd"
 import { RootState } from "@/store"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -53,23 +50,10 @@ const Footer = (props: IFooterProps) => {
   const memberListShow = useSelector((state: RootState) => state.global.memberListShow)
   const dialogRecordShow = useSelector((state: RootState) => state.global.dialogRecordShow)
   const captionShow = useSelector((state: RootState) => state.global.captionShow)
-  const tipSTTEnable = useSelector((state: RootState) => state.global.tipSTTEnable)
   const aiShow = useSelector((state: RootState) => state.global.aiShow)
   const chatShow = useSelector((state: RootState) => state.global.chatShow)
   const sttData = useSelector((state: RootState) => state.global.sttData)
-  // Language setting state removed - using English as default
-
-  useEffect(() => {
-    if (tipSTTEnable) {
-      setTimeout(() => {
-        dispatch(setTipSTTEnable(false))
-      }, 4000)
-    }
-  }, [tipSTTEnable])
-
-  const hasSttStarted = useMemo(() => {
-    return sttData.status === "start"
-  }, [sttData])
+  // Language setting removed - transcription now auto-starts
 
   const MicText = useMemo(() => {
     return localAudioMute ? t("footer.unMuteAudio") : t("footer.muteAudio")
@@ -127,9 +111,7 @@ const Footer = (props: IFooterProps) => {
   }
 
   const onClickCaption = () => {
-    if (sttData.status !== "start") {
-      return dispatch(setTipSTTEnable(true))
-    }
+    // Caption toggle - transcription is always on, just toggle visibility
     dispatch(setCaptionShow(!captionShow))
   }
 
@@ -151,28 +133,7 @@ const Footer = (props: IFooterProps) => {
     }
   }
 
-  const toggleLanguageSettingDialog = async () => {
-    // Directly start/stop transcription with English (no language selection modal)
-    try {
-      if (!hasSttStarted) {
-        // Start transcription with English as default
-        await window.sttManager.startTranscription({
-          languages: [
-            {
-              source: "en-US",
-              target: [],
-            },
-          ],
-        })
-      } else {
-        // Stop transcription
-        await window.sttManager.stopTranscription()
-      }
-    } catch (e: any) {
-      console.error(e)
-      dispatch(addMessage({ content: e.message || "Failed to toggle transcription", type: "error" }))
-    }
-  }
+  // toggleLanguageSettingDialog removed - transcription now auto-starts for all users
 
   const onClickEnd = () => {
     if (location.search) {
@@ -207,11 +168,8 @@ const Footer = (props: IFooterProps) => {
           <span className={styles.text}>{t("footer.participantsList")}</span>
         </span>
         {/* caption */}
-        <span
-          className={`${styles.item} ${!hasSttStarted ? "disabled" : ""}`}
-          onClick={onClickCaption}
-        >
-          <CaptionIcon disabled={!hasSttStarted} active={captionShow}></CaptionIcon>
+        <span className={styles.item} onClick={onClickCaption}>
+          <CaptionIcon active={captionShow}></CaptionIcon>
           <span className={styles.text}>{captionText}</span>
         </span>
         <CaptionPopover>
@@ -229,13 +187,7 @@ const Footer = (props: IFooterProps) => {
           <TranscriptionIcon active={dialogRecordShow}></TranscriptionIcon>
           <span className={styles.text}>{t("footer.conversationHistory")}</span>
         </span>
-        {/* language */}
-        <Popover placement="top" content={t("footer.tipEnableSTTFirst")} open={tipSTTEnable}>
-          <span className={`${styles.item}`} onClick={toggleLanguageSettingDialog}>
-            <SettingIcon></SettingIcon>
-            <span className={`${styles.text}`}>{t("footer.langaugesSetting")}</span>
-          </span>
-        </Popover>
+        {/* language setting button removed - transcription now auto-starts */}
         {/* ai */}
         {showAIModule() ? (
           <span className={styles.item} onClick={onClickAiShow}>

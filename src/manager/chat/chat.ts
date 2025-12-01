@@ -1,7 +1,7 @@
 import { io, Socket } from "socket.io-client"
 import { AGEventEmitter } from "../events"
 import { ChatEvents } from "./types"
-import { IChatMessage } from "@/types"
+import { IChatMessage, ITextstream } from "@/types"
 
 export class ChatManager extends AGEventEmitter<ChatEvents> {
   private socket: Socket | null = null
@@ -91,6 +91,32 @@ export class ChatManager extends AGEventEmitter<ChatEvents> {
         this.emit("chatMessageReceived", chatMessage)
       } catch (error) {
         console.error("[ChatManager] Error processing chat message:", error)
+        this.emit("error", error as Error)
+      }
+    })
+
+    // Listen for transcription messages
+    this.socket.on("transcription", (data: any) => {
+      console.log("[ChatManager] Received transcription:", data)
+
+      try {
+        // Don't emit our own transcriptions (they're already handled locally)
+        // Compare as strings to handle number/string type differences
+        const receivedUserId = String(data.userId || "")
+        const currentUserId = String(this.userId || "")
+        
+        if (data.userId && receivedUserId !== currentUserId && data.textstream) {
+          console.log(`[ChatManager] Processing remote transcription from ${data.userName} (${data.userId})`)
+          this.emit("transcriptionReceived", {
+            userId: data.userId,
+            userName: data.userName || "",
+            textstream: data.textstream,
+          })
+        } else {
+          console.log(`[ChatManager] Ignoring own transcription from ${this.userId}`)
+        }
+      } catch (error) {
+        console.error("[ChatManager] Error processing transcription:", error)
         this.emit("error", error as Error)
       }
     })
@@ -192,6 +218,33 @@ export class ChatManager extends AGEventEmitter<ChatEvents> {
       channel: this.channel,
       ...message,
     })
+  }
+
+  async sendTranscription(textstream: ITextstream): Promise<void> {
+    if (!this.connected || !this.socket) {
+      console.warn("[ChatManager] Cannot send transcription: not connected")
+      return
+    }
+
+    if (!this.socket.connected) {
+      console.warn("[ChatManager] Cannot send transcription: socket not connected")
+      return
+    }
+
+    try {
+      const transcriptionData = {
+        channel: this.channel,
+        userId: String(this.userId), // Ensure userId is a string for consistency
+        userName: this.userName,
+        textstream: textstream,
+      }
+
+      console.log("[ChatManager] Sending transcription:", transcriptionData)
+
+      this.socket.emit("transcription", transcriptionData)
+    } catch (error) {
+      console.error("[ChatManager] Failed to send transcription:", error)
+    }
   }
 
   async destroy() {

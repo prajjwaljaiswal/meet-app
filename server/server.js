@@ -1,7 +1,7 @@
 import { Server } from "socket.io"
 import { createServer } from "http"
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5200
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*"
 
 // Create HTTP server
@@ -130,6 +130,56 @@ io.on("connection", (socket) => {
       console.error("[Server] Error in chatMessage:", error)
       socket.emit("error", {
         message: "Failed to send message",
+        error: error.message,
+      })
+    }
+  })
+
+  // Handle transcription message
+  socket.on("transcription", (data) => {
+    try {
+      const { channel, userId, userName, textstream } = data
+
+      // Get user info from socket
+      const userData = socketUsers.get(socket.id)
+
+      if (!userData) {
+        socket.emit("error", {
+          message: "You must join a channel first",
+        })
+        return
+      }
+
+      // Use data from socket if not provided in message
+      const transcriptionChannel = channel || userData.channel
+      const transcriptionUserId = userId || userData.userId
+      const transcriptionUserName = userName || userData.userName
+
+      if (!textstream) {
+        socket.emit("error", {
+          message: "Transcription textstream cannot be empty",
+        })
+        return
+      }
+
+      // Create transcription object
+      const transcription = {
+        userId: transcriptionUserId,
+        userName: transcriptionUserName,
+        textstream: textstream,
+        channel: transcriptionChannel,
+      }
+
+      console.log(
+        `[Server] Transcription from ${transcriptionUserName} (${transcriptionUserId}) in channel ${transcriptionChannel}`,
+      )
+
+      // Broadcast transcription to all users in the channel (excluding sender - they already have it locally)
+      socket.to(transcriptionChannel).emit("transcription", transcription)
+    } catch (error) {
+      console.error("[Server] Error in transcription:", error)
+      socket.emit("error", {
+        message: "Failed to send transcription",
         error: error.message,
       })
     }

@@ -13,7 +13,7 @@
     "prettier": "prettier . --write --ignore-unknown",
     "preview": "vite preview",
     "proto": "pbjs -t json-module -w es6 --es6 -o src/protobuf/SttMessage.js src/protobuf/SttMessage.proto",
-    "start": "npm run dev && npm run preview"
+    "start": "npm run dev && npm run preview --port 5100"
   },
   "sideEffects": [
     "*.css"

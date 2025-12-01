@@ -13,13 +13,27 @@ import "./styles/global.css"
 
 const theme = {
   token: {
-    colorPrimary: "#3d53f5",
-    colorInfo: "#3d53f5",
+    colorPrimary: "#0B5FFF",
+    colorInfo: "#0B5FFF",
+    colorSuccess: "#00C853",
+    colorWarning: "#FF9800",
+    colorError: "#F44336",
+    borderRadius: 8,
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
   },
   components: {
     Switch: {
       trackHeight: 24,
       handleSize: 20,
+    },
+    Input: {
+      borderRadius: 8,
+      paddingBlock: 10,
+      paddingInline: 14,
+    },
+    Button: {
+      borderRadius: 8,
+      fontWeight: 500,
     },
   },
 }
