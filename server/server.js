@@ -1,14 +1,19 @@
 import { Server } from "socket.io"
-import { createServer } from "http"
+import { createServer } from "https"
+import fs from "fs"
+import path from "path"
 
 const PORT = process.env.PORT || 5200
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*"
 
-// Create HTTP server
-const httpServer = createServer()
+// Create HTTPS server
+const httpsServer = createServer({
+  key: fs.readFileSync(path.join(__dirname, "key.pem")),
+  cert: fs.readFileSync(path.join(__dirname, "cert.pem")),
+})
 
 // Initialize Socket.IO server with CORS configuration
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
@@ -245,7 +250,7 @@ function leaveChannel(socket, channel, userId) {
 }
 
 // Start server
-httpServer.listen(PORT, () => {
+httpsServer.listen(PORT, () => {
   console.log(`[Server] Socket.IO server running on port ${PORT}`)
   console.log(`[Server] CORS origin: ${CORS_ORIGIN}`)
   console.log(`[Server] Waiting for connections...`)
@@ -254,7 +259,7 @@ httpServer.listen(PORT, () => {
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("[Server] SIGTERM received, shutting down gracefully")
-  httpServer.close(() => {
+  httpsServer.close(() => {
     console.log("[Server] HTTP server closed")
     process.exit(0)
   })
@@ -262,7 +267,7 @@ process.on("SIGTERM", () => {
 
 process.on("SIGINT", () => {
   console.log("[Server] SIGINT received, shutting down gracefully")
-  httpServer.close(() => {
+  httpsServer.close(() => {
     console.log("[Server] HTTP server closed")
     process.exit(0)
   })
